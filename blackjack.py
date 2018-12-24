@@ -1,3 +1,6 @@
+''' need to add score system, player blackjack on initial hand and
+ace score either 11 or 1'''
+
 from os import system
 from colorama import Fore
 from time import sleep
@@ -45,6 +48,9 @@ class Deck:
                 self.deck.append((suit, rank))
 
     def shuffle_deck(self):
+        system('clear')
+        print('New Deck in play - Dealer Shuffling......')
+        sleep(2.5)
         random.shuffle(self.deck)
 
     def deal_a_card(self):
@@ -93,42 +99,55 @@ def game_state(plyr_cond, dealer_cond):
         print('Total: ' + str(dealer_hand.get_score()))
     dealer_hand.bust_check()
     plyr_hand.show_hand(plyr_cond)
+    plyr_hand.bust_check()
     print('Total: ' + str(plyr_hand.get_score()))
 
 
-def deal_new_hand(player):
-    hand = []
-    return Hand([card_deck.deal_a_card(), card_deck.deal_a_card()], player)
-
-
 def plyr_turn():
+    game_state(False, True)
     while plyr_hand.get_score() < 22:
-        game_state(False, True)
-        turn = raw_input('Hit(h) or Stick(s)? ')
+        # game_state(False, True)
+        turn = raw_input('\nHit(h) or Stick(s)? ')
         if turn.lower() == 'h':
             plyr_hand.hit()
+            game_state(False, True)
         elif turn.lower() == 's':
             return
-    else:
-        game_state(False, True)
-        return
 
 
 def dealer_turn():
     game_state(False, False)
-    if dealer_hand.get_score() > 21:
-        print('Dealer BUST')
-    # return ('Player')
-    # elif dealer_hand.get_score() => 17:
-    # return wincheck()
-    # else:
+    sleep(1)
+    if dealer_hand.get_score() == 21:
+        print('\nDealer BLACKJACK!!!')
+        return
 
-    print('dealers turn....')
-    print(dealer_hand.get_score())
+    while dealer_hand.get_score() < 33:
+        if dealer_hand.get_score() < 17:
+            dealer_hand.hit()
+            game_state(False, False)
+            sleep(1)
+        else:
+            game_state(False, False)
+            sleep(1)
+            return
 
 
 def wincheck():
-    pass
+    if plyr_hand.get_score() > 21:
+        winner = 'Dealer'
+    elif dealer_hand.get_score() > 21:
+        winner = 'Player'
+    elif dealer_hand.get_score() > plyr_hand.get_score():
+        winner = 'Dealer'
+    elif dealer_hand.get_score() < plyr_hand.get_score():
+        winner = 'Player'
+    else:
+        winner = 'Draw'
+        print('Player and Dealer Draw This Hand.')
+
+    if winner != 'Draw':
+        print('\n{} Wins This Hand.'.format(winner))
 
 
 # assign suit symbols
@@ -147,25 +166,31 @@ card_deck = Deck([])
 card_deck.new_deck()
 card_deck.shuffle_deck()
 
-# main game loop requires nore than 10 cards in deck to play
-while card_deck.count() > 10:
+game_flag = True
 
-    # deal initial hands
-    plyr_hand = deal_new_hand('Player')
-    dealer_hand = deal_new_hand('Dealer')
+while game_flag is True:
 
-    plyr_turn()
-    if plyr_hand.bust_check() == False:
-        dealer_turn()
+    if card_deck.count() < 10:
+        card_deck.new_deck()
+        card_deck.shuffle_deck()
+
     else:
-        print('Dealer wins')
-        print(card_deck.count())
-        c = raw_input('Play Another Hand y/n? ')
-        if c.lower == 'y':
-            continue
+        # deal initial 2 card hands
+        plyr_hand = Hand([card_deck.deal_a_card(), card_deck.deal_a_card()], 'Player')
+        dealer_hand = Hand([card_deck.deal_a_card(), card_deck.deal_a_card()], 'Dealer')
+        plyr_turn()
+
+        # player bust on turn
+        if plyr_hand.get_score() > 21:
+            pass
+
         else:
-            break
+            dealer_turn()
 
-
-# if len(self.card_list) == 2 and self.get_score() == 21:
-#print('{} BLACKJACK'.format(self.player))
+        # end game routine
+        wincheck()
+        another_game = raw_input('\nPlay Another (y/n)? ')
+        if another_game.lower() == 'n':
+            game_flag = False
+        else:
+            continue
