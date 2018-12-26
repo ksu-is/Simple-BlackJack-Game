@@ -1,4 +1,4 @@
-''' need to add score system, player blackjack on initial hand and
+''' need to add player blackjack on initial hand and
 ace score either 11 or 1'''
 
 from os import system
@@ -107,7 +107,7 @@ def plyr_turn():
     game_state(False, True)
     while plyr_hand.get_score() < 22:
         # game_state(False, True)
-        turn = raw_input('\nHit(h) or Stick(s)? ')
+        turn = input('\nHit(h) or Stick(s)? ')
         if turn.lower() == 'h':
             plyr_hand.hit()
             game_state(False, True)
@@ -133,21 +133,26 @@ def dealer_turn():
             return
 
 
-def wincheck():
+def wincheck(pot):
     if plyr_hand.get_score() > 21:
         winner = 'Dealer'
+        pot -= bet
     elif dealer_hand.get_score() > 21:
         winner = 'Player'
+        pot += bet
     elif dealer_hand.get_score() > plyr_hand.get_score():
         winner = 'Dealer'
+        pot -= bet
     elif dealer_hand.get_score() < plyr_hand.get_score():
         winner = 'Player'
+        pot += bet
     else:
         winner = 'Draw'
         print('Player and Dealer Draw This Hand.')
 
     if winner != 'Draw':
         print('\n{} Wins This Hand.'.format(winner))
+    return pot
 
 
 # assign suit symbols
@@ -167,14 +172,32 @@ card_deck.new_deck()
 card_deck.shuffle_deck()
 
 game_flag = True
+pot = 100.00
 
 while game_flag is True:
 
-    if card_deck.count() < 10:
-        card_deck.new_deck()
-        card_deck.shuffle_deck()
+    valid_bet = False
+    message = ''
+    bet = 0.00
 
-    else:
+    while valid_bet is False:
+
+        if card_deck.count() < 10:
+            card_deck.new_deck()
+            card_deck.shuffle_deck()
+
+        system('clear')
+        print(f'Cash Pot is £{pot:.2f} {message}')
+        bet = input('Please Place Your Bet: ')
+
+        if bet.isdigit() is False:
+            message = 'Last Bet Was Invalid.'
+        elif float(bet) > pot:
+            message = 'Last Bet Was Too High.'
+        else:
+            bet = float(bet)
+            valid_bet = True
+
         # deal initial 2 card hands
         plyr_hand = Hand([card_deck.deal_a_card(), card_deck.deal_a_card()], 'Player')
         dealer_hand = Hand([card_deck.deal_a_card(), card_deck.deal_a_card()], 'Dealer')
@@ -188,9 +211,13 @@ while game_flag is True:
             dealer_turn()
 
         # end game routine
-        wincheck()
-        another_game = raw_input('\nPlay Another (y/n)? ')
+        pot = wincheck(pot)
+        another_game = input('\nPlay Another (y/n)? ')
         if another_game.lower() == 'n':
+            game_flag = False
+        elif pot <= 0:
+            print('\nSorry You Have Gambled Away All Of Your Pot!!!')
+            print('Game Over.')
             game_flag = False
         else:
             continue
