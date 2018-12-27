@@ -1,10 +1,14 @@
-''' need to add player blackjack on initial hand and
-ace score either 11 or 1'''
+# need to add ace score either 11 or 1
 
 from os import system
 from colorama import Fore
 from time import sleep
 import random
+
+'''Card class creates cards from self.deck[] list when called via deal_a_card()
+method from the deck class. This creates a deck of cards each with attributes
+of suit, rank & score. Method of display_card() from this class prints out the
+card in form of colored ascii symbol and rank'''
 
 
 class Card:
@@ -25,6 +29,15 @@ class Card:
             print(Fore.RED + self.suit + Fore.WHITE + self.rank)
         else:
             print(Fore.WHITE + self.suit + ' ' + Fore.WHITE + self.rank)
+
+
+'''Deck class is passed a list 'deck' becoming deck its single attribute.
+Its methods include:
+count() - Returns the number of list items(cards) in the deckself.
+show_deck() - Prints every card in the deck using the Card class diplay_card.
+new_deck() - Generates new 52 card deck iterating over each suit & rank combo.
+shuffle_deck() - Randomises any new_deck() which is created in order.
+deal_a_card() - Removes last list entry and returns a generated card.'''
 
 
 class Deck:
@@ -56,6 +69,19 @@ class Deck:
     def deal_a_card(self):
         sel_card = self.deck.pop()
         return Card(sel_card[0], sel_card[1])
+
+
+'''Hand class needs to be passed 2x Card class instances & 'Player' or 'Dealer'
+to generate card_list & player attributes. Methods include:
+get_score() - Returns total score of the hand.
+show_hand() - Displays Player/Dealer and their hand. Masks dealers 2nd card if
+              True is passed, therefore on the dealers turn False needs to be
+              passed to show the full hand.
+hit() - Adds another card from the deck into the card_list attribute.
+bust_check() - Uses the get_score() method to generate bust message and return
+               True if over 21, returns False if not.
+bj_check() - Checks if hand has initial blackjack/21 with 2 cards generating
+             a message if so and returning True. If not False is returned.'''
 
 
 class Hand:
@@ -90,6 +116,14 @@ class Hand:
         else:
             return False
 
+    def bj_check(self):
+        if self.get_score() == 21 and len(self.card_list) == 2:
+
+            print('\nBLACKJACK!!!')
+            return True
+        else:
+            return False
+
 
 # print game state & check if bust - passing True hides 2nd card & total
 def game_state(plyr_cond, dealer_cond):
@@ -105,21 +139,21 @@ def game_state(plyr_cond, dealer_cond):
 
 def plyr_turn():
     game_state(False, True)
+    if plyr_hand.bj_check() is True:
+        return True
     while plyr_hand.get_score() < 22:
-        # game_state(False, True)
         turn = input('\nHit(h) or Stick(s)? ')
         if turn.lower() == 'h':
             plyr_hand.hit()
             game_state(False, True)
         elif turn.lower() == 's':
-            return
+            return False
 
 
 def dealer_turn():
     game_state(False, False)
     sleep(1)
-    if dealer_hand.get_score() == 21:
-        print('\nDealer BLACKJACK!!!')
+    if dealer_hand.bj_check() is True:
         return
 
     while dealer_hand.get_score() < 33:
@@ -133,19 +167,22 @@ def dealer_turn():
             return
 
 
-def wincheck(pot):
+def wincheck(pot, blackjack):
     if plyr_hand.get_score() > 21:
         winner = 'Dealer'
-        pot -= bet
+        pot -= float(bet)
+    elif blackjack is True:
+        winner = 'Player'
+        pot += float(bet) * 1.5
     elif dealer_hand.get_score() > 21:
         winner = 'Player'
-        pot += bet
+        pot += float(bet)
     elif dealer_hand.get_score() > plyr_hand.get_score():
         winner = 'Dealer'
-        pot -= bet
+        pot -= float(bet)
     elif dealer_hand.get_score() < plyr_hand.get_score():
         winner = 'Player'
-        pot += bet
+        pot += float(bet)
     else:
         winner = 'Draw'
         print('Player and Dealer Draw This Hand.')
@@ -179,6 +216,7 @@ while game_flag is True:
     valid_bet = False
     message = ''
     bet = 0.00
+    plyr_bj_check = False
 
     while valid_bet is False:
 
@@ -190,7 +228,7 @@ while game_flag is True:
         print(f'Cash Pot is £{pot:.2f} {message}')
         bet = input('Please Place Your Bet: ')
 
-        if bet.isdigit() is False:
+        if bet.isalpha() is True:
             message = 'Last Bet Was Invalid.'
         elif float(bet) > pot:
             message = 'Last Bet Was Too High.'
@@ -199,25 +237,28 @@ while game_flag is True:
             valid_bet = True
 
         # deal initial 2 card hands
-        plyr_hand = Hand([card_deck.deal_a_card(), card_deck.deal_a_card()], 'Player')
-        dealer_hand = Hand([card_deck.deal_a_card(), card_deck.deal_a_card()], 'Dealer')
-        plyr_turn()
+    plyr_hand = (Hand([card_deck.deal_a_card(), card_deck.deal_a_card()],
+                      'Player'))
+    dealer_hand = (Hand([card_deck.deal_a_card(), card_deck.deal_a_card()],
+                        'Dealer'))
 
-        # player bust on turn
-        if plyr_hand.get_score() > 21:
-            pass
+    blackjack = plyr_turn()
 
-        else:
-            dealer_turn()
+    # player bust on turn
+    if plyr_hand.get_score() > 21 or blackjack is True:
+        pass
 
-        # end game routine
-        pot = wincheck(pot)
-        another_game = input('\nPlay Another (y/n)? ')
-        if another_game.lower() == 'n':
-            game_flag = False
-        elif pot <= 0:
-            print('\nSorry You Have Gambled Away All Of Your Pot!!!')
-            print('Game Over.')
-            game_flag = False
-        else:
-            continue
+    else:
+        dealer_turn()
+
+    # end game routine
+    pot = wincheck(pot, blackjack)
+    another_game = input('\nPlay Another (y/n)? ')
+    if another_game.lower() == 'n':
+        game_flag = False
+    elif pot <= 0.00:
+        print('\nSorry You Have Gambled Away All Of Your Pot!!!')
+        print('Game Over.')
+        game_flag = False
+    else:
+        continue
