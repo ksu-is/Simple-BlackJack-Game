@@ -90,6 +90,11 @@ class Hand:
 
         self.card_list = card_list
         self.player = player
+        self.ace = False
+
+        for card in self.card_list:
+            if card.rank == 'A':
+                self.ace = True
 
     def get_score(self):
         total = 0
@@ -107,7 +112,10 @@ class Hand:
                 self.card_list[i].display_card()
 
     def hit(self):
-        self.card_list.append(card_deck.deal_a_card())
+        new = card_deck.deal_a_card()
+        self.card_list.append(new)
+        if new.rank == 'A':
+            self.ace = True
 
     def bust_check(self):
         if self.get_score() > 21:
@@ -129,10 +137,12 @@ class Hand:
 def game_state(plyr_cond, dealer_cond):
     system('clear')
     dealer_hand.show_hand(dealer_cond)
+    print(dealer_hand.ace)
     if dealer_cond is False:
         print('Total: ' + str(dealer_hand.get_score()))
     dealer_hand.bust_check()
     plyr_hand.show_hand(plyr_cond)
+    print(plyr_hand.ace)
     plyr_hand.bust_check()
     print('Total: ' + str(plyr_hand.get_score()))
 
