@@ -1,5 +1,3 @@
-# need to add ace score either 11 or 1
-
 from os import system
 from colorama import Fore
 from time import sleep
@@ -7,7 +5,7 @@ import random
 
 '''Card class creates cards from self.deck[] list when called via deal_a_card()
 method from the deck class. This creates a deck of cards each with attributes
-of suit, rank & score. Method of display_card() from this class prints out the
+of suit, rank & score. Menthod of display_card() from this class prints out the
 card in form of colored ascii symbol and rank'''
 
 
@@ -20,7 +18,7 @@ class Card:
         if rank == 'K' or rank == 'Q' or rank == 'J':
             self.score = 10
         elif rank == 'A':
-            self.score = 11
+            self.score = 1
         else:
             self.score = int(rank)
 
@@ -125,9 +123,8 @@ class Hand:
             return False
 
     def bj_check(self):
-        if self.get_score() == 21 and len(self.card_list) == 2:
-
-            print('\nBLACKJACK!!!')
+        if (self.get_score() == 11 and len(self.card_list) == 2 and
+                self.ace is True):
             return True
         else:
             return False
@@ -137,14 +134,25 @@ class Hand:
 def game_state(plyr_cond, dealer_cond):
     system('clear')
     dealer_hand.show_hand(dealer_cond)
-    print(dealer_hand.ace)
-    if dealer_cond is False:
-        print('Total: ' + str(dealer_hand.get_score()))
-    dealer_hand.bust_check()
+    score = dealer_hand.get_score()
+    bust = dealer_hand.bust_check()
+    if dealer_hand.bj_check() is True and dealer_cond is False:
+        print('Total: 21 - BLACKJACK!!!')
+    elif (dealer_cond is False and dealer_hand.ace is True and
+          bust is False and score + 10 < 22):
+        print('Total: ' + str(score) + ' or ' + str(score + 10))
+    elif dealer_cond is False:
+        print('Total: ' + str(score))
+
     plyr_hand.show_hand(plyr_cond)
-    print(plyr_hand.ace)
+    score = plyr_hand.get_score()
     plyr_hand.bust_check()
-    print('Total: ' + str(plyr_hand.get_score()))
+    if plyr_hand.bj_check() is True:
+        print('Total: 21 - BLACKJACK!!!')
+    elif plyr_hand.ace is True and bust is False and score + 10 < 22:
+        print('Total: ' + str(score) + ' or ' + str(score + 10))
+    else:
+        print('Total: ' + str(score))
 
 
 def plyr_turn():
@@ -177,20 +185,34 @@ def dealer_turn():
             return
 
 
+# pick 1 or 11 to return highest score under 21 for hands containing an ace
+def ace_score_adjust(hand):
+    if hand.ace is False:
+        return hand.get_score()
+    else:
+        unadjusted = hand.get_score()
+        # bust using 11 but under 21 using 1
+        if (unadjusted + 10) > 21 and unadjusted < 22:
+            return hand.get_score()
+        # using 11 returns score under 21
+        elif (unadjusted + 10) < 22:
+            return (unadjusted + 10)
+
+
 def wincheck(pot, blackjack):
-    if plyr_hand.get_score() > 21:
+    if ace_score_adjust(plyr_hand) > 21:
         winner = 'Dealer'
         pot -= float(bet)
     elif blackjack is True:
         winner = 'Player'
         pot += float(bet) * 1.5
-    elif dealer_hand.get_score() > 21:
+    elif ace_score_adjust(dealer_hand) > 21:
         winner = 'Player'
         pot += float(bet)
-    elif dealer_hand.get_score() > plyr_hand.get_score():
+    elif ace_score_adjust(dealer_hand) > ace_score_adjust(plyr_hand):
         winner = 'Dealer'
         pot -= float(bet)
-    elif dealer_hand.get_score() < plyr_hand.get_score():
+    elif ace_score_adjust(dealer_hand) < ace_score_adjust(plyr_hand):
         winner = 'Player'
         pot += float(bet)
     else:
@@ -267,8 +289,7 @@ while game_flag is True:
     if another_game.lower() == 'n':
         game_flag = False
     elif pot <= 0.00:
-        print('\nSorry You Have Gambled Away All Of Your Pot!!!')
-        print('Game Over.')
+        print('\nSorry Game Over - You Have Gambled Away All Of Your Pot!!!')
         game_flag = False
     else:
         continue
