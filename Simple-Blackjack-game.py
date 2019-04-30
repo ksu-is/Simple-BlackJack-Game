@@ -121,7 +121,6 @@ def show_all(player,dealer):
     
 def hit(deck,player_or_dealer):    
     player_or_dealer.add_card(deck.deal(), values)   
-#   possible bug 
 #   if player_or_dealer == player and player.aces > 0:
     if player_or_dealer.aces > 1:
         player_or_dealer.adjust_for_ace()
