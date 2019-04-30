@@ -136,3 +136,91 @@ def hit_or_stand(deck, player_or_dealer, player, dealer):
             show_some(player,dealer)            
             if player.value >= 21:
                 break  
+            
+# possible bug
+            if player_or_dealer == dealer and (dealer.value >= 17):
+                break                                     
+        elif choice == 'S':
+            break          
+        else:           
+            print('Please input a valid value')        
+
+def replay(play_round, total):    
+    
+    while True:        
+        wantagain = input("\nDo you want to play again? Choose either 'Y' or 'N': ").upper()
+               
+        if wantagain == 'Y':
+            print('') 
+            main(play_round, total)                       
+            break
+        elif wantagain == 'N':
+            print('Goodbye. It was a pleasure to play with you!')
+            break         
+        else:            
+            print('Please input a valid value')
+
+def main(play_round, total = 100):       
+    print('Welcome to Black Jack!')   
+    deck = Deck()
+    deck.shuffle()     
+           
+    player = Player()   
+    total = total_budget(play_round, total)
+    if total == 0:
+        print('Game Over! Start over to replenish the bank.')
+        return False
+    player.total = total
+    player.add_card(deck.deal(),values)
+    player.add_card(deck.deal(), values)
+    
+    dealer = Player()
+    dealer.add_card(deck.deal(), values)
+    dealer.add_card(deck.deal(), values)
+    
+    take_bet(player)
+    show_some(player, dealer)
+
+    while True:
+               
+        hit_or_stand(deck,player,player,dealer)
+
+        if player.value > 21:
+            print("\nPlayer busts")
+            player.lose_bet()
+            break
+        elif player.value == 21 and dealer.value != 21:
+            print("\nPlayer wins")
+            player.win_bet()
+            break
+        elif player.value == 21 and dealer.value == 21:
+            print("\nIt's a tie")
+            break
+        else:
+            print("\nDealer's turn...")
+            while dealer.value < 17:
+                hit(deck,dealer)
+
+        if dealer.value > 21:
+            print("\nDealer busts")
+            player.win_bet()
+            break
+        elif dealer.value > player.value:
+            print("\nDealer wins")
+            player.lose_bet()
+            break
+        elif dealer.value < player.value:
+            print("\nPlayer wins")
+            player.win_bet()
+            break
+        else:
+            print("\nThe game is tie!")
+            break
+        
+    show_all(player,dealer)             
+    print("\nPlayer's winnings stand at " + str(player.total)) 
+    play_round += 1
+    total = player.total
+    replay(play_round, player.total)      
+               
+main(play_round)
