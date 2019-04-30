@@ -137,7 +137,6 @@ def hit_or_stand(deck, player_or_dealer, player, dealer):
             if player.value >= 21:
                 break  
             
-# possible bug
             if player_or_dealer == dealer and (dealer.value >= 17):
                 break                                     
         elif choice == 'S':
