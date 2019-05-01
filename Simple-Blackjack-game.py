@@ -212,7 +212,7 @@ def main(play_round, total = 100):
             player.win_bet()
             break
         else:
-            print("\nThe game is tie!")
+            print("\nThe game is a tie!")
             break
         
     show_all(player,dealer)             
