@@ -73,7 +73,7 @@ def total_budget(play_round, total):
     while True:    
         try:
             if play_round == 0:
-                total = int(input("\nWhat is your budget: "))  
+                total = int(input("\nSet Your Budget: "))  
                 if total <= 0:
                     print("Sorry. Budget can't be negative or zero")
                 else:
@@ -166,7 +166,7 @@ def main(play_round, total = 100):
     player = Player()   
     total = total_budget(play_round, total)
     if total == 0:
-        print('Game Over! Start over to replenish the bank.')
+        print('Game Over! Start over to reset your budget and replinish the bank.')
         return False
     player.total = total
     player.add_card(deck.deal(),values)
